@@ -1,15 +1,19 @@
 #pragma once
+#include "SingletonMacro.h"
 
-class MainApp : public SingletonObject<MainApp>
+class MainApp
 {
-public:
+	DECLARE_SINGLETON(MainApp)
+
+private:
 	explicit MainApp();
 	virtual ~MainApp();
 
 public:
 	HRESULT init();
 	void clear();
-	HRESULT update(const float& timeDelta);
-	void render(const float& timeDelta);
+	void update(const float timeDelta);	// 객체 상태 업데이트 (이동, 신축, 회전 등)
+	void process(const float timeDelta);	// 객체 상태 업데이트 후, 각종 이벤트 처리 (충돌, 렌더링 등)
+	void render(const float timeDelta);
 };
 

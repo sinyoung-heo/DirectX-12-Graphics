@@ -64,6 +64,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         else
         {
             MainApp::getInstance()->update(0.0f);
+            MainApp::getInstance()->process(0.0f);
             MainApp::getInstance()->render(0.0f);
         }
     }
@@ -186,5 +187,5 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void destroySingletonObject()
 {
-   MainApp::getInstance()->destorySingleton();
+   MainApp::getInstance()->destoryInstance();
 }

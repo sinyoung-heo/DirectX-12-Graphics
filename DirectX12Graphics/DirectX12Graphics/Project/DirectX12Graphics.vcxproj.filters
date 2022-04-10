@@ -42,6 +42,21 @@
     <ClInclude Include="..\Engine\MainApp.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="..\Reference\DDSTextureLoader.h">
+      <Filter>Reference</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Reference\d3dx12.h">
+      <Filter>Reference</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\GraphicDevice.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Include.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\SingletonMacro.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="DirectX12Graphics.ico">
@@ -61,6 +76,9 @@
       <Filter>Project</Filter>
     </ClCompile>
     <ClCompile Include="..\Engine\MainApp.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\GraphicDevice.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>

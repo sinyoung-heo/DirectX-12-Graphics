@@ -16,14 +16,38 @@
 
 #include <iostream>
 #include <vector>
-#include <map>
 #include <list>
+#include <map>
 #include <set>
 #include <utility>
+#include <string>
 
 using namespace std;
+#include <assert.h>
+#include "Include.h"
 
-#include "Const.h"
-#include "Enum.h"
-#include "Template.h"
-#include "Extern.h"
+// DirectX 12
+#include <wrl.h>
+#include <shellapi.h>
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include <d3d12shader.h>
+#include <dxgi1_4.h>
+#include <DirectXColors.h>
+#include <DirectXCollision.h>
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <d3dx12.h>
+#include "DDSTextureLoader.h"
+
+// DirectX 11
+#include <d3d11on12.h>
+#include <d2d1_3.h>
+#include <dwrite_2.h>
+
+using Microsoft::WRL::ComPtr;
+using namespace DirectX;
+using namespace DirectX::PackedVector;
+
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")

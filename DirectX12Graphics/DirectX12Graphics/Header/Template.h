@@ -1,5 +1,4 @@
 #pragma once
-
 // 동적할당 해제
 template <class T>
 void safeDelete(T& ptr)
@@ -21,42 +20,14 @@ void safeDeleteArray(T& ptr)
 	}
 }
 
-// 싱글톤 오브젝트
 template <class T>
-class SingletonObject
+void safeRelease(T& ptr)
 {
-protected:
-	explicit SingletonObject()
+	if (ptr != nullptr)
 	{
-	};
-	virtual ~SingletonObject()
-	{
-	};
-
-public:													
-	static T* getInstance()
-	{
-		if (instance == nullptr)
-		{
-			instance = new T;
-		}
-		return instance;
+		ptr->Release();
 	}
-
-	void destorySingleton()
-	{
-		if (instance != nullptr)
-		{
-			delete instance;
-			instance = nullptr;
-		}
-	}
-
-private:
-	static T* instance;
-};
-
-#define IMPLEMENT_SINGLETON(T)	T* T::instance = nullptr;
+}
 
 // 객체 생성
 template <class T>
@@ -65,7 +36,10 @@ T* createObject()
 	T* instance = new T;
 
 	if (E_FAIL == instance->init())
+	{
+		safeDelete(instance);
 		return nullptr;
+	}
 
 	return instance;
 };
