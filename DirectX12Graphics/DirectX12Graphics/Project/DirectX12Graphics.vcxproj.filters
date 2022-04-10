@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{7f8b27d3-cc09-4788-9e4d-e20cd810cacb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{afb8fb70-ca52-4d8b-bb4a-0f937599d588}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Reference">
+      <UniqueIdentifier>{96947f0f-52d3-469f-b628-73c730b6f7e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Project">
+      <UniqueIdentifier>{10a6a6ad-25ac-4f35-83dc-2c9a44fc214c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DirectX12Graphics.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Enum.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Template.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Const.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\Extern.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\MainApp.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="DirectX12Graphics.ico">
+      <Filter>Project</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>Project</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DirectX12Graphics.rc">
+      <Filter>Project</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DirectX12Graphics.cpp">
+      <Filter>Project</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\MainApp.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
