@@ -44,6 +44,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DIRECTX12GRAPHICS));
 
+    if (FAILED(MainApp::getInstance()->init()))
+    {
+        assert("MainApp init Failed");
+        return FALSE;
+    }
+
     MSG msg;
     msg.message = WM_NULL;
 

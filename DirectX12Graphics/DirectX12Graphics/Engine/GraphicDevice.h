@@ -35,11 +35,18 @@ public:
 	void clear();
 
 public:
+	HRESULT renderReset();
+	HRESULT renderExcuteCmdList();
+	HRESULT renderEnd();
 	HRESULT	waitForGpuComplete();
+
+public:
+	ID3D12Device* getDevice();
+	const wstring& getDeviceName();
 
 private:
 	HRESULT createGraphicDevice(const unsigned int width, const unsigned int height);
-	void findHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppOutAdapter);
+	void findHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** out);
 	HRESULT createCommandList();
 	HRESULT createSwapChain(const HWND hWnd, const WindowType winType, const unsigned int width, const unsigned int height);
 	HRESULT createRtvAndDsvDescriptorHeap();
@@ -52,8 +59,8 @@ private:
 
 private:
 	// DirectX 12 Graphic Device
-	ID3D12Device* graphicDevice_{ nullptr };
-	wstring graphicDeviceName_;
+	ID3D12Device* device_{ nullptr };
+	wstring deviceName_;
 	IDXGIFactory4* factory_{ nullptr };
 	IDXGISwapChain1* swapChain_{ nullptr };
 

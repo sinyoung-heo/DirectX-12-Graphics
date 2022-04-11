@@ -20,12 +20,41 @@ HRESULT GraphicDevice::init(
 	const unsigned int width, 
 	const unsigned int height)
 {
-	createGraphicDevice(width, height);
-	createCommandList();
-	createSwapChain(hWnd, winType, width, height);
-	createRtvAndDsvDescriptorHeap();
-	createFenceObject();
-	createRenderTargetAndDepthStencilBuffer(width, height);
+	if (FAILED(createGraphicDevice(width, height)))
+	{
+		assert(ERROR && "createGraphicDevice Failed");
+		return E_FAIL;
+	}
+
+	if (FAILED(createCommandList()))
+	{
+		assert(ERROR && "createCommandList Failed");
+		return E_FAIL;
+	}
+
+	if (FAILED(createSwapChain(hWnd, winType, width, height)))
+	{
+		assert(ERROR && "createSwapChain Failed");
+		return E_FAIL;
+	}
+	
+	if (FAILED(createRtvAndDsvDescriptorHeap()))
+	{
+		assert(ERROR && "createRtvAndDsvDescriptorHeap Failed");
+		return E_FAIL;
+	}
+
+	if (FAILED(createFenceObject()))
+	{
+		assert(ERROR && "createFenceObject Failed");
+		return E_FAIL;
+	}
+	
+	if (FAILED(createRenderTargetAndDepthStencilBuffer(width, height)))
+	{
+		assert(ERROR && "createRenderTargetAndDepthStencilBuffer Failed");
+		return E_FAIL;
+	}
 
 	return NO_ERROR;
 }
@@ -35,10 +64,105 @@ void GraphicDevice::clear()
 	ZeroMemory(&viewport_, sizeof(D3D12_VIEWPORT));
 	ZeroMemory(&scissorRect_, sizeof(D3D12_RECT));
 
-	graphicDeviceName_.clear();
+	deviceName_.clear();
 	commandAllocators_.clear();
 	commandLists_.clear();
 	swapChainBuffers_.clear();
+}
+
+HRESULT GraphicDevice::renderReset()
+{
+	// Reset CommandList
+	if (FAILED(commandAllocators_[(size_t)CmdList::Main]->Reset()))
+	{
+		assert(ERROR && "commandAllocators_[(size_t)CmdList::Main] Reset Failed");
+		return E_FAIL;
+	}
+
+	if (FAILED(commandLists_[(size_t)CmdList::Main]->Reset(commandAllocators_[(size_t)CmdList::Main], pipelineState_)))
+	{
+		assert(ERROR && "commandLists_[(size_t)CmdList::Main] Reset Failed");
+		return E_FAIL;
+	}
+
+	// Reset Viewport
+	commandLists_[(size_t)CmdList::Main]->RSSetViewports(1, &viewport_);
+	commandLists_[(size_t)CmdList::Main]->RSSetScissorRects(1, &scissorRect_);
+	
+	// Reset RenderTarget Buffer
+	commandLists_[(size_t)CmdList::Main]->ResourceBarrier(
+		1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(
+			swapChainBuffers_[curBackBuffer_],
+			D3D12_RESOURCE_STATE_PRESENT,
+			D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	commandLists_[(size_t)CmdList::Main]->ClearRenderTargetView(
+		CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			rtvHeap_->GetCPUDescriptorHandleForHeapStart(),
+			curBackBuffer_,
+			rtvDescriptorSize_),
+		clearColor,
+		0,
+		nullptr);
+
+	// Reset DepthStencil Buffer
+	commandLists_[(size_t)CmdList::Main]->ClearDepthStencilView(
+		dsvHeap_->GetCPUDescriptorHandleForHeapStart(),
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+		1.0f,
+		0,
+		0,
+		nullptr);
+
+	// RenderTarget Setting
+	commandLists_[(size_t)CmdList::Main]->OMSetRenderTargets(
+		1,
+		&CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			rtvHeap_->GetCPUDescriptorHandleForHeapStart(),
+			curBackBuffer_,
+			rtvDescriptorSize_),
+		true,
+		&dsvHeap_->GetCPUDescriptorHandleForHeapStart());
+
+	/* ------------------------------------ Render Start ----------------------------------- */
+
+	return S_OK;
+}
+
+HRESULT GraphicDevice::renderExcuteCmdList()
+{
+	commandLists_[(size_t)CmdList::Main]->ResourceBarrier(
+		1,
+		&CD3DX12_RESOURCE_BARRIER::Transition(
+			swapChainBuffers_[curBackBuffer_],
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT));
+
+	if (FAILED(commandLists_[(size_t)CmdList::Main]->Close()))
+	{
+		assert(ERROR && "commandLists_[(size_t)CmdList::Main] Close Failed");
+		return E_FAIL;
+	}
+
+	ID3D12CommandList* commandLists[] = { commandLists_[(size_t)CmdList::Main] };
+	commandQueue_->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+	return S_OK;
+}
+
+HRESULT GraphicDevice::renderEnd()
+{
+	if (FAILED(swapChain_->Present(0, 0)))
+	{
+		assert(ERROR && "SwapChain Present Failed");
+		return E_FAIL;
+	}
+
+	curBackBuffer_ = (curBackBuffer_ + 1) % (int)SwapChain::End;
+
+	return S_OK;
 }
 
 HRESULT GraphicDevice::waitForGpuComplete()
@@ -47,7 +171,7 @@ HRESULT GraphicDevice::waitForGpuComplete()
 
 	if (FAILED(commandQueue_->Signal(fence_, curFence_)))
 	{
-		assert("CommandQueue Signal Failed");
+		assert(ERROR && "CommandQueue Signal Failed");
 		return E_FAIL;
 	}
 
@@ -65,7 +189,7 @@ HRESULT GraphicDevice::waitForGpuComplete()
 		// GPU가 현재 Fence 지점에 도달했으면 이벤트를 발동한다.
 		if (FAILED(fence_->SetEventOnCompletion(curFence_, eventHandle)))
 		{
-			assert("Fence SetEventOnCompletion Failed");
+			assert(ERROR && "Fence SetEventOnCompletion Failed");
 			return E_FAIL;
 		}
 
@@ -75,8 +199,16 @@ HRESULT GraphicDevice::waitForGpuComplete()
 	}
 
 	return S_OK;
+}
 
-	return S_OK;
+ID3D12Device* GraphicDevice::getDevice()
+{
+	return device_;
+}
+
+const wstring& GraphicDevice::getDeviceName()
+{
+	return deviceName_;
 }
 
 HRESULT GraphicDevice::createGraphicDevice(const unsigned int width, const unsigned int height)
@@ -89,7 +221,7 @@ HRESULT GraphicDevice::createGraphicDevice(const unsigned int width, const unsig
 	// 팩토리
 	if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory_))))
 	{
-		assert("Create Factory failed!");
+		assert(ERROR && "Create Factory failed!");
 		return E_FAIL;
 	}
 
@@ -97,18 +229,18 @@ HRESULT GraphicDevice::createGraphicDevice(const unsigned int width, const unsig
 	IDXGIAdapter1* hardwareAdapter;
 	findHardwareAdapter(factory_, &hardwareAdapter);
 
-	if (FAILED(D3D12CreateDevice(hardwareAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&graphicDevice_))))
+	if (FAILED(D3D12CreateDevice(hardwareAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device_))))
 	{
 		IDXGIAdapter* warpAdapter;
 		factory_->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
-		D3D12CreateDevice(warpAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&graphicDevice_));
+		D3D12CreateDevice(warpAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device_));
 	}
 
-	graphicDevice_->SetName(L"GraphicDevice");
+	device_->SetName(L"GraphicDevice");
 
-	rtvDescriptorSize_ = graphicDevice_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	dsvDescriptorSize_ = graphicDevice_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	etcDescriptorSize_ = graphicDevice_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	rtvDescriptorSize_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	dsvDescriptorSize_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	etcDescriptorSize_ = device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 #ifdef _DEBUG
 	logAdapters();
@@ -133,7 +265,7 @@ void GraphicDevice::findHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** 
 		if (maxVideoMemory <= adapterDesc.DedicatedVideoMemory)
 		{
 			maxVideoMemory = adapterDesc.DedicatedVideoMemory;
-			graphicDeviceName_ = adapterDesc.Description;
+			deviceName_ = adapterDesc.Description;
 			idx = i;
 		}
 	}
@@ -150,9 +282,9 @@ HRESULT GraphicDevice::createCommandList()
 	commandQueueDesc.Type	= D3D12_COMMAND_LIST_TYPE_DIRECT;
 	commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-	if (FAILED(graphicDevice_->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue_))))
+	if (FAILED(device_->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue_))))
 	{
-		assert("Create CommandQueue Failed");
+		assert(commandQueue_ && "Create CommandQueue Failed");
 		return E_FAIL;
 	}
 	commandQueue_->SetName(L"CommandQueue");
@@ -165,20 +297,20 @@ HRESULT GraphicDevice::createCommandList()
 		ID3D12CommandAllocator* commandAllocator{ nullptr };
 		ID3D12GraphicsCommandList* commandList{ nullptr };
 
-		if (FAILED(graphicDevice_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))))
+		if (FAILED(device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator))))
 		{
-			assert("Create CommandAllocator Failed");
+			assert(commandAllocator && "Create CommandAllocator Failed");
 			return E_FAIL;
 		}
 
-		if (FAILED(graphicDevice_->CreateCommandList(
+		if (FAILED(device_->CreateCommandList(
 			0,
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			commandAllocator,	// Associated command allocator
 			nullptr,			// Initial PipelineStateObject
 			IID_PPV_ARGS(&commandList))))
 		{
-			assert("Create CommandList Failed");
+			assert(commandList && "Create CommandList Failed");
 			return E_FAIL;
 		}
 
@@ -212,12 +344,12 @@ HRESULT GraphicDevice::createSwapChain(
 	msaaQualityLevels.NumQualityLevels = 0;
 
 	// 디바이스가 지원하는 다중 샘플의 품질 수준을 확인.
-	if FAILED(graphicDevice_->CheckFeatureSupport(
+	if FAILED(device_->CheckFeatureSupport(
 		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,	// 다중 표본화 기능.
 		&msaaQualityLevels,							// 기능 지원 정보가 설정될 구조체 포인터.
 		sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)))
 	{
-		assert("Check Feature Support Failed");
+		assert(ERROR && "Check Feature Support Failed");
 		return E_FAIL;
 	}
 
@@ -234,7 +366,9 @@ HRESULT GraphicDevice::createSwapChain(
 	swapChainDesc1.SampleDesc.Quality = isMsaa4XEnable_ ? (msaa4XQualityLevel_ - 1) : 0;
 	swapChainDesc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc1.BufferCount = (int)SwapChain::End;
+	swapChainDesc1.Scaling = DXGI_SCALING_NONE;
 	swapChainDesc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc1.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc1.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullScreenDesc;
@@ -246,14 +380,20 @@ HRESULT GraphicDevice::createSwapChain(
 	swapChainFullScreenDesc.Windowed = bool(winType);
 
 	if (FAILED(factory_->CreateSwapChainForHwnd(
-		graphicDevice_,
+		commandQueue_,
 		hWnd,
 		&swapChainDesc1,
 		&swapChainFullScreenDesc,
 		nullptr,
 		&swapChain_)))
 	{
-		assert("Create SwapChainForHwnd Failed");
+		assert(swapChain_ && "Create SwapChainForHwnd Failed");
+		return E_FAIL;
+	}
+
+	if (FAILED(factory_->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER)))
+	{
+		assert(factory_ && "MakeWindowAssociation Failed");
 		return E_FAIL;
 	}
 
@@ -267,9 +407,9 @@ HRESULT GraphicDevice::createRtvAndDsvDescriptorHeap()
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
-	if (FAILED(graphicDevice_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap_))))
+	if (FAILED(device_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap_))))
 	{
-		assert("Create RTV DescriptHeap Failed");
+		assert(rtvHeap_ && "Create RTV DescriptHeap Failed");
 		return E_FAIL;
 	}
 
@@ -280,9 +420,9 @@ HRESULT GraphicDevice::createRtvAndDsvDescriptorHeap()
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
-	if (FAILED(graphicDevice_->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap_))))
+	if (FAILED(device_->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap_))))
 	{
-		assert("Create DSV DescriptHeap Failed");
+		assert(dsvHeap_ && "Create DSV DescriptHeap Failed");
 		return E_FAIL;
 	}
 
@@ -293,12 +433,12 @@ HRESULT GraphicDevice::createRtvAndDsvDescriptorHeap()
 
 HRESULT GraphicDevice::createFenceObject()
 {
-	if (FAILED(graphicDevice_->CreateFence(
+	if (FAILED(device_->CreateFence(
 		0,
 		D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(&fence_))))
 	{
-		assert("Create Fence Failed");
+		assert(fence_ && "Create Fence Failed");
 		return E_FAIL;
 	}
 
@@ -326,9 +466,11 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH)))
 	{
-		assert("SwapChain ResizeBuffers Failed");
+		assert(ERROR && "SwapChain ResizeBuffers Failed");
 		return E_FAIL;
 	}
+
+	curBackBuffer_ = (unsigned int)SwapChain::Front;
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(rtvHeap_->GetCPUDescriptorHandleForHeapStart());
 
@@ -337,11 +479,11 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 		ID3D12Resource* swapChainBuffer{ nullptr };
 		if (FAILED(swapChain_->GetBuffer(i, IID_PPV_ARGS(&swapChainBuffer))))
 		{
-			assert("SwapChain GetBuffer Failed");
+			assert(swapChainBuffer && "SwapChain GetBuffer Failed");
 			return E_FAIL;
 		}
 
-		graphicDevice_->CreateRenderTargetView(swapChainBuffer,	nullptr, rtvHeapHandle);
+		device_->CreateRenderTargetView(swapChainBuffer,	nullptr, rtvHeapHandle);
 
 		rtvHeapHandle.Offset(1, rtvDescriptorSize_);
 		swapChainBuffers_.emplace_back(swapChainBuffer);
@@ -373,7 +515,7 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 
-	if (FAILED(graphicDevice_->CreateCommittedResource(
+	if (FAILED(device_->CreateCommittedResource(
 		&defaultHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&depthStencilDesc,
@@ -381,12 +523,12 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 		&optClear,
 		IID_PPV_ARGS(&depthStencilBuffer_))))
 	{
-		assert("Create Depth Stencil Buffer Failed");
+		assert(depthStencilBuffer_ && "Create Depth Stencil Buffer Failed");
 		return E_FAIL;
 	}
 
 	// Create descriptor to mip level 0 of entire resource using the format of the resource
-	graphicDevice_->CreateDepthStencilView(depthStencilBuffer_, nullptr, dsvHeap_->GetCPUDescriptorHandleForHeapStart());
+	device_->CreateDepthStencilView(depthStencilBuffer_, nullptr, dsvHeap_->GetCPUDescriptorHandleForHeapStart());
 
 	// Transition the resource from its initial state to be used as a depth buffer
 	commandLists_[(int)CmdList::Main]->ResourceBarrier(
@@ -399,7 +541,7 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 	// Execute the resize commands
 	if (FAILED(commandLists_[(int)CmdList::Main]->Close()))
 	{
-		assert("CommandList Closd Failed");
+		assert(ERROR && "CommandList Closd Failed");
 		return E_FAIL;
 	}
 
