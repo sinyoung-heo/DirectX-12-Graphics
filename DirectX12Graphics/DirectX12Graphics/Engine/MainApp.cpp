@@ -39,28 +39,9 @@ void MainApp::process(const float timeDelta)
 
 void MainApp::render(const float timeDelta)
 {
-	if (FAILED(GraphicDevice::getInstance()->renderReset()))
-	{
-		assert(ERROR && "GraphicDevice renderReset Failed");
-		return;
-	}
-
-	if (FAILED(GraphicDevice::getInstance()->renderExcuteCmdList()))
-	{
-		assert(ERROR && "GraphicDevice renderExcuteCmdList Failed");
-		return;
-	}
-
-	if (FAILED(GraphicDevice::getInstance()->renderEnd()))
-	{
-		assert(ERROR && "GraphicDevice renderEnd Failed");
-		return;
-	}
-
-	if (FAILED(GraphicDevice::getInstance()->waitForGpuComplete()))
-	{
-		assert(ERROR && "GraphicDevice waitForGpuComplete Failed");
-		return;
-	}
+	FAILED_CHECK(GraphicDevice::getInstance()->renderReset(), "GraphicDevice renderReset Failed");
+	FAILED_CHECK(GraphicDevice::getInstance()->renderExcuteCmdList(), "GraphicDevice renderExcuteCmdList Failed");
+	FAILED_CHECK(GraphicDevice::getInstance()->renderEnd(), "GraphicDevice renderEnd Failed");
+	FAILED_CHECK(GraphicDevice::getInstance()->waitForGpuComplete(), "GraphicDevice waitForGpuComplete Failed");
 }
 

@@ -121,6 +121,8 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>../Project;../Header;../Reference;../Resource;../Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>framework.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,7 +139,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>../Project;../Header;../Reference;../Resource;../Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>framework.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -150,7 +152,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Engine\GraphicDevice.h" />
+    <ClInclude Include="..\Engine\IComponent.h" />
+    <ClInclude Include="..\Engine\IObject.h" />
     <ClInclude Include="..\Engine\MainApp.h" />
+    <ClInclude Include="..\Engine\vec2.h" />
+    <ClInclude Include="..\Engine\vec3.h" />
+    <ClInclude Include="..\Engine\vec4.h" />
     <ClInclude Include="..\Header\Const.h" />
     <ClInclude Include="..\Header\Enum.h" />
     <ClInclude Include="..\Header\Extern.h" />
@@ -166,7 +173,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Engine\GraphicDevice.cpp" />
+    <ClCompile Include="..\Engine\IComponent.cpp" />
+    <ClCompile Include="..\Engine\IObject.cpp" />
     <ClCompile Include="..\Engine\MainApp.cpp" />
+    <ClCompile Include="..\Engine\vec2.cpp" />
+    <ClCompile Include="..\Engine\vec3.cpp" />
+    <ClCompile Include="..\Engine\vec4.cpp" />
     <ClCompile Include="DirectX12Graphics.cpp" />
   </ItemGroup>
   <ItemGroup>

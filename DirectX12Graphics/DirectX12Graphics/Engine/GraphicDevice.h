@@ -1,4 +1,5 @@
 #pragma once
+#include "Include.h"
 #include "SingletonMacro.h"
 
 enum class CmdList

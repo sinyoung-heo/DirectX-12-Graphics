@@ -24,7 +24,6 @@
 
 using namespace std;
 #include <assert.h>
-#include "Include.h"
 
 // DirectX 12
 #include <wrl.h>
@@ -51,3 +50,7 @@ using namespace DirectX::PackedVector;
 
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
+
+#define _XM_NO_INTRINSICS_
+typedef XMMATRIX matrix;
+typedef XMFLOAT4X4 float4x4;

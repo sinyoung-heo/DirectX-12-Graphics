@@ -31,7 +31,7 @@ void safeRelease(T& ptr)
 
 // °´Ã¼ »ý¼º
 template <class T>
-T* createObject()
+T* createInstance()
 {
 	T* instance = new T;
 
@@ -43,3 +43,11 @@ T* createObject()
 
 	return instance;
 };
+
+inline void FAILED_CHECK(const HRESULT hr, const char* msg)
+{
+	if (hr < 0)
+	{
+		assert(ERROR && msg);
+	}
+}

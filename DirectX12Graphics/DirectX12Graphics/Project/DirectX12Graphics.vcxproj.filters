@@ -13,6 +13,12 @@
     <Filter Include="Project">
       <UniqueIdentifier>{10a6a6ad-25ac-4f35-83dc-2c9a44fc214c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Component">
+      <UniqueIdentifier>{e275fdeb-8ac6-478f-9885-0ce3b78018e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Interface">
+      <UniqueIdentifier>{fe6807b0-3c13-48d2-a4b2-929339707d4b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectX12Graphics.h">
@@ -57,6 +63,21 @@
     <ClInclude Include="..\Header\SingletonMacro.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="..\Engine\IObject.h">
+      <Filter>Engine\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\IComponent.h">
+      <Filter>Engine\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\vec3.h">
+      <Filter>Engine\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\vec2.h">
+      <Filter>Engine\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\vec4.h">
+      <Filter>Engine\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="DirectX12Graphics.ico">
@@ -80,6 +101,21 @@
     </ClCompile>
     <ClCompile Include="..\Engine\GraphicDevice.cpp">
       <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\IObject.cpp">
+      <Filter>Engine\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\IComponent.cpp">
+      <Filter>Engine\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\vec3.cpp">
+      <Filter>Engine\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\vec2.cpp">
+      <Filter>Engine\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\vec4.cpp">
+      <Filter>Engine\Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
