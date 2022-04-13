@@ -8,7 +8,7 @@ class MainApp
 
 private:
 	explicit MainApp();
-	virtual ~MainApp();
+	~MainApp();
 
 public:
 	HRESULT init();

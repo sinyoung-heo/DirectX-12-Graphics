@@ -33,7 +33,7 @@
     <ClInclude Include="Resource.h">
       <Filter>Project</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\Enum.h">
+    <ClInclude Include="..\Header\EnumMacro.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\Template.h">
@@ -78,6 +78,12 @@
     <ClInclude Include="..\Engine\vec4.h">
       <Filter>Engine\Component</Filter>
     </ClInclude>
+    <ClInclude Include="..\Engine\Renderer.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Engine\ObjectManager.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="DirectX12Graphics.ico">
@@ -116,6 +122,12 @@
     </ClCompile>
     <ClCompile Include="..\Engine\vec4.cpp">
       <Filter>Engine\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\Renderer.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\ObjectManager.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

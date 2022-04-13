@@ -155,11 +155,13 @@
     <ClInclude Include="..\Engine\IComponent.h" />
     <ClInclude Include="..\Engine\IObject.h" />
     <ClInclude Include="..\Engine\MainApp.h" />
+    <ClInclude Include="..\Engine\ObjectManager.h" />
+    <ClInclude Include="..\Engine\Renderer.h" />
     <ClInclude Include="..\Engine\vec2.h" />
     <ClInclude Include="..\Engine\vec3.h" />
     <ClInclude Include="..\Engine\vec4.h" />
     <ClInclude Include="..\Header\Const.h" />
-    <ClInclude Include="..\Header\Enum.h" />
+    <ClInclude Include="..\Header\EnumMacro.h" />
     <ClInclude Include="..\Header\Extern.h" />
     <ClInclude Include="..\Header\Include.h" />
     <ClInclude Include="..\Header\SingletonMacro.h" />
@@ -176,6 +178,8 @@
     <ClCompile Include="..\Engine\IComponent.cpp" />
     <ClCompile Include="..\Engine\IObject.cpp" />
     <ClCompile Include="..\Engine\MainApp.cpp" />
+    <ClCompile Include="..\Engine\ObjectManager.cpp" />
+    <ClCompile Include="..\Engine\Renderer.cpp" />
     <ClCompile Include="..\Engine\vec2.cpp" />
     <ClCompile Include="..\Engine\vec3.cpp" />
     <ClCompile Include="..\Engine\vec4.cpp" />

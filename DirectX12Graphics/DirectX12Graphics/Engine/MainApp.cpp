@@ -1,11 +1,14 @@
 #include "framework.h"
 #include "MainApp.h"
 #include "GraphicDevice.h"
+#include "Renderer.h"
+#include "ObjectManager.h"
 
 IMPLEMENT_SINGLETON(MainApp)
 
 MainApp::MainApp()
 {
+	clear();
 }
 
 MainApp::~MainApp()
@@ -15,12 +18,16 @@ MainApp::~MainApp()
 
 HRESULT MainApp::init()
 {
-	if (FAILED(GraphicDevice::getInstance()->init(g_hWnd, g_hWnd, WindowType::WindowScreen, DEFAULT_WINCX, DEFAULT_WINCY)))
-	{
-		assert("GrpahicDevice init Failed");
-		return E_FAIL;
-	}
+	FAILED_CHECK(GraphicDevice::getInstance()->init(
+		g_hWnd, 
+		g_hWnd, 
+		WindowType::WindowScreen,
+		DEFAULT_WINCX, 
+		DEFAULT_WINCY), 
+		"GrpahicDevice init Failed");
 
+	FAILED_CHECK(Renderer::getInstance()->init(), "Renderer init Failed");
+	FAILED_CHECK(ObjectManager::getInstance()->init(), "ObjectManager init Failed");
 
 	return NO_ERROR;
 }
@@ -31,17 +38,16 @@ void MainApp::clear()
 
 void MainApp::update(const float timeDelta)
 {
+	ObjectManager::getInstance()->update(timeDelta);
 }
 
 void MainApp::process(const float timeDelta)
 {
+	ObjectManager::getInstance()->process(timeDelta);
 }
 
 void MainApp::render(const float timeDelta)
 {
-	FAILED_CHECK(GraphicDevice::getInstance()->renderReset(), "GraphicDevice renderReset Failed");
-	FAILED_CHECK(GraphicDevice::getInstance()->renderExcuteCmdList(), "GraphicDevice renderExcuteCmdList Failed");
-	FAILED_CHECK(GraphicDevice::getInstance()->renderEnd(), "GraphicDevice renderEnd Failed");
-	FAILED_CHECK(GraphicDevice::getInstance()->waitForGpuComplete(), "GraphicDevice waitForGpuComplete Failed");
+	Renderer::getInstance()->render(timeDelta);
 }
 

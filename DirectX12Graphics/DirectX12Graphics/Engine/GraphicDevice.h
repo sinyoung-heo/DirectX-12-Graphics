@@ -2,26 +2,29 @@
 #include "Include.h"
 #include "SingletonMacro.h"
 
-enum class CmdList
+enum_begin(CmdList)
 {
 	Main,
 	Resource,
 	End
-};
+}
+enum_end
 
-enum class SwapChain
+enum_begin(SwapChain)
 {
 	Front,
 	Back,
 	End
-};
+}
+enum_end
 
-enum class WindowType
+enum_begin(WindowType)
 {
 	FullScreen,
 	WindowScreen,
 	End
-};
+}
+enum_end
 
 class GraphicDevice
 {
@@ -29,10 +32,10 @@ class GraphicDevice
 
 private:
 	explicit GraphicDevice();
-	virtual ~GraphicDevice();
+	~GraphicDevice();
 
 public:
-	HRESULT init(const HWND hWnd, const HANDLE hHandle, const WindowType winType, const unsigned int width, const unsigned int height);
+	HRESULT init(const HWND hWnd, const HANDLE hHandle, const WindowType::T winType, const unsigned int width, const unsigned int height);
 	void clear();
 
 public:
@@ -49,7 +52,7 @@ private:
 	HRESULT createGraphicDevice(const unsigned int width, const unsigned int height);
 	void findHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** out);
 	HRESULT createCommandList();
-	HRESULT createSwapChain(const HWND hWnd, const WindowType winType, const unsigned int width, const unsigned int height);
+	HRESULT createSwapChain(const HWND hWnd, const WindowType::T winType, const unsigned int width, const unsigned int height);
 	HRESULT createRtvAndDsvDescriptorHeap();
 	HRESULT createFenceObject();
 	HRESULT createRenderTargetAndDepthStencilBuffer(const unsigned int width, const unsigned int height);
@@ -80,7 +83,7 @@ private:
 
 	// Swap Chain Buffers
 	vector< ID3D12Resource*> swapChainBuffers_;
-	unsigned int curBackBuffer_{ (unsigned int)SwapChain::Front };
+	unsigned int curBackBuffer_{ SwapChain::Front };
 	bool isMsaa4XEnable_{ false };
 	unsigned int msaa4XQualityLevel_{ 0 };
 	D3D12_VIEWPORT viewport_;

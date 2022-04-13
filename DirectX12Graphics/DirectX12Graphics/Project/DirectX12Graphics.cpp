@@ -3,6 +3,9 @@
 #include "framework.h"
 #include "DirectX12Graphics.h"
 #include "MainApp.h"
+#include "GraphicDevice.h"
+#include "Renderer.h"
+#include "ObjectManager.h"
 
 #define MAX_LOADSTRING 100
 
@@ -192,5 +195,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void destroySingletonObject()
 {
-   MainApp::getInstance()->destoryInstance();
+    ObjectManager::getInstance()->destoryInstance();
+    Renderer::getInstance()->destoryInstance();
+    MainApp::getInstance()->destoryInstance();
+    GraphicDevice::getInstance()->destoryInstance();
 }

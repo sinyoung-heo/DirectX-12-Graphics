@@ -16,7 +16,7 @@ GraphicDevice::~GraphicDevice()
 HRESULT GraphicDevice::init(
 	const HWND hWnd, 
 	const HANDLE hHandle,
-	const WindowType winType,
+	const WindowType::T winType,
 	const unsigned int width, 
 	const unsigned int height)
 {
@@ -44,15 +44,15 @@ void GraphicDevice::clear()
 HRESULT GraphicDevice::renderReset()
 {
 	// Reset CommandList
-	FAILED_CHECK(commandAllocators_[(size_t)CmdList::Main]->Reset(), "commandAllocators_[(size_t)CmdList::Main] Reset Failed");
-	FAILED_CHECK(commandLists_[(size_t)CmdList::Main]->Reset(commandAllocators_[(size_t)CmdList::Main], pipelineState_), "commandLists_[(size_t)CmdList::Main] Reset Failed");
+	FAILED_CHECK(commandAllocators_[CmdList::Main]->Reset(), "commandAllocators_[(size_t)CmdList::Main] Reset Failed");
+	FAILED_CHECK(commandLists_[CmdList::Main]->Reset(commandAllocators_[(size_t)CmdList::Main], pipelineState_), "commandLists_[(size_t)CmdList::Main] Reset Failed");
 
 	// Reset Viewport
-	commandLists_[(size_t)CmdList::Main]->RSSetViewports(1, &viewport_);
-	commandLists_[(size_t)CmdList::Main]->RSSetScissorRects(1, &scissorRect_);
+	commandLists_[CmdList::Main]->RSSetViewports(1, &viewport_);
+	commandLists_[CmdList::Main]->RSSetScissorRects(1, &scissorRect_);
 	
 	// Reset RenderTarget Buffer
-	commandLists_[(size_t)CmdList::Main]->ResourceBarrier(
+	commandLists_[CmdList::Main]->ResourceBarrier(
 		1,
 		&CD3DX12_RESOURCE_BARRIER::Transition(
 			swapChainBuffers_[curBackBuffer_],
@@ -60,7 +60,7 @@ HRESULT GraphicDevice::renderReset()
 			D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	commandLists_[(size_t)CmdList::Main]->ClearRenderTargetView(
+	commandLists_[CmdList::Main]->ClearRenderTargetView(
 		CD3DX12_CPU_DESCRIPTOR_HANDLE(
 			rtvHeap_->GetCPUDescriptorHandleForHeapStart(),
 			curBackBuffer_,
@@ -70,7 +70,7 @@ HRESULT GraphicDevice::renderReset()
 		nullptr);
 
 	// Reset DepthStencil Buffer
-	commandLists_[(size_t)CmdList::Main]->ClearDepthStencilView(
+	commandLists_[CmdList::Main]->ClearDepthStencilView(
 		dsvHeap_->GetCPUDescriptorHandleForHeapStart(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
 		1.0f,
@@ -79,7 +79,7 @@ HRESULT GraphicDevice::renderReset()
 		nullptr);
 
 	// RenderTarget Setting
-	commandLists_[(size_t)CmdList::Main]->OMSetRenderTargets(
+	commandLists_[CmdList::Main]->OMSetRenderTargets(
 		1,
 		&CD3DX12_CPU_DESCRIPTOR_HANDLE(
 			rtvHeap_->GetCPUDescriptorHandleForHeapStart(),
@@ -95,16 +95,16 @@ HRESULT GraphicDevice::renderReset()
 
 HRESULT GraphicDevice::renderExcuteCmdList()
 {
-	commandLists_[(size_t)CmdList::Main]->ResourceBarrier(
+	commandLists_[CmdList::Main]->ResourceBarrier(
 		1,
 		&CD3DX12_RESOURCE_BARRIER::Transition(
 			swapChainBuffers_[curBackBuffer_],
 			D3D12_RESOURCE_STATE_RENDER_TARGET,
 			D3D12_RESOURCE_STATE_PRESENT));
 
-	FAILED_CHECK(commandLists_[(size_t)CmdList::Main]->Close(), "commandLists_[(size_t)CmdList::Main] Close Failed");
+	FAILED_CHECK(commandLists_[CmdList::Main]->Close(), "commandLists_[(size_t)CmdList::Main] Close Failed");
 
-	ID3D12CommandList* commandLists[] = { commandLists_[(size_t)CmdList::Main] };
+	ID3D12CommandList* commandLists[] = { commandLists_[CmdList::Main] };
 	commandQueue_->ExecuteCommandLists(_countof(commandLists), commandLists);
 
 	return S_OK;
@@ -113,7 +113,7 @@ HRESULT GraphicDevice::renderExcuteCmdList()
 HRESULT GraphicDevice::renderEnd()
 {
 	FAILED_CHECK(swapChain_->Present(0, 0), "SwapChain Present Failed");
-	curBackBuffer_ = (curBackBuffer_ + 1) % (int)SwapChain::End;
+	curBackBuffer_ = (curBackBuffer_ + 1) % SwapChain::End;
 
 	return S_OK;
 }
@@ -229,7 +229,7 @@ HRESULT GraphicDevice::createCommandList()
 	/*__________________________________________________________________________________________________________
 	[ CommandList ]
 	____________________________________________________________________________________________________________*/
-	for (int i = 0; i < (int)CmdList::End; ++i)
+	for (int i = 0; i < CmdList::End; ++i)
 	{
 		ID3D12CommandAllocator* commandAllocator{ nullptr };
 		ID3D12GraphicsCommandList* commandList{ nullptr };
@@ -249,18 +249,18 @@ HRESULT GraphicDevice::createCommandList()
 		commandLists_.emplace_back(commandList);
 	}
 
-	commandAllocators_[(size_t)CmdList::Main]->SetName(L"CommandAllocator Main");
-	commandAllocators_[(size_t)CmdList::Resource]->SetName(L"CommandAllocator Resource");
+	commandAllocators_[CmdList::Main]->SetName(L"CommandAllocator Main");
+	commandAllocators_[CmdList::Resource]->SetName(L"CommandAllocator Resource");
 
-	commandLists_[(size_t)CmdList::Main]->SetName(L"CommandList Main");
-	commandLists_[(size_t)CmdList::Resource]->SetName(L"CommandList Resource");
+	commandLists_[CmdList::Main]->SetName(L"CommandList Main");
+	commandLists_[CmdList::Resource]->SetName(L"CommandList Resource");
 
 	return NO_ERROR;
 }
 
 HRESULT GraphicDevice::createSwapChain(
 	const HWND hWnd, 
-	const WindowType winType, 
+	const WindowType::T winType, 
 	const unsigned int width, 
 	const unsigned int height)
 {
@@ -276,7 +276,8 @@ HRESULT GraphicDevice::createSwapChain(
 	FAILED_CHECK(device_->CheckFeatureSupport(
 		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,	// 다중 표본화 기능.
 		&msaaQualityLevels,							// 기능 지원 정보가 설정될 구조체 포인터.
-		sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)), "Check Feature Support Failed");
+		sizeof(D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS)), 
+		"Check Feature Support Failed");
 
 	//다중 샘플의 품질 수준이 1보다 크면 다중 샘플링을 활성화.
 	msaa4XQualityLevel_ = msaaQualityLevels.NumQualityLevels;
@@ -290,7 +291,7 @@ HRESULT GraphicDevice::createSwapChain(
 	swapChainDesc1.SampleDesc.Count = isMsaa4XEnable_ ? 4 : 1;
 	swapChainDesc1.SampleDesc.Quality = isMsaa4XEnable_ ? (msaa4XQualityLevel_ - 1) : 0;
 	swapChainDesc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc1.BufferCount = (int)SwapChain::End;
+	swapChainDesc1.BufferCount = SwapChain::End;
 	swapChainDesc1.Scaling = DXGI_SCALING_NONE;
 	swapChainDesc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc1.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -310,7 +311,8 @@ HRESULT GraphicDevice::createSwapChain(
 		&swapChainDesc1,
 		&swapChainFullScreenDesc,
 		nullptr,
-		&swapChain_), "Create SwapChainForHwnd Failed");
+		&swapChain_), 
+		"Create SwapChainForHwnd Failed");
 
 	FAILED_CHECK(factory_->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER), "MakeWindowAssociation Failed");
 
@@ -320,7 +322,7 @@ HRESULT GraphicDevice::createSwapChain(
 HRESULT GraphicDevice::createRtvAndDsvDescriptorHeap()
 {
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = (int)SwapChain::End;
+	rtvHeapDesc.NumDescriptors = SwapChain::End;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
@@ -355,7 +357,7 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 	// Flush before changing any resources
 	waitForGpuComplete();
 
-	FAILED_CHECK(commandLists_[(int)CmdList::Main]->Reset(commandAllocators_[(int)CmdList::Main], nullptr), "Reset CommandLists Reset Failed");
+	FAILED_CHECK(commandLists_[CmdList::Main]->Reset(commandAllocators_[(int)CmdList::Main], nullptr), "Reset CommandLists Reset Failed");
 
 	// Resize the swap chain
 	FAILED_CHECK(swapChain_->ResizeBuffers(
@@ -363,7 +365,8 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 		width,
 		height,
 		DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH), "SwapChain ResizeBuffers Failed");
+		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH), 
+		"SwapChain ResizeBuffers Failed");
 
 	curBackBuffer_ = (unsigned int)SwapChain::Front;
 
@@ -412,13 +415,14 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 		&depthStencilDesc,
 		D3D12_RESOURCE_STATE_COMMON,
 		&optClear,
-		IID_PPV_ARGS(&depthStencilBuffer_)), "Create Depth Stencil Buffer Failed");
+		IID_PPV_ARGS(&depthStencilBuffer_)), 
+		"Create Depth Stencil Buffer Failed");
 
 	// Create descriptor to mip level 0 of entire resource using the format of the resource
 	device_->CreateDepthStencilView(depthStencilBuffer_, nullptr, dsvHeap_->GetCPUDescriptorHandleForHeapStart());
 
 	// Transition the resource from its initial state to be used as a depth buffer
-	commandLists_[(int)CmdList::Main]->ResourceBarrier(
+	commandLists_[CmdList::Main]->ResourceBarrier(
 		1, 
 		&CD3DX12_RESOURCE_BARRIER::Transition(
 			depthStencilBuffer_,
@@ -426,7 +430,7 @@ HRESULT GraphicDevice::createRenderTargetAndDepthStencilBuffer(const unsigned in
 			D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	// Execute the resize commands
-	FAILED_CHECK(commandLists_[(int)CmdList::Main]->Close(), "CommandList Closd Failed");
+	FAILED_CHECK(commandLists_[CmdList::Main]->Close(), "CommandList Closd Failed");
 
 	ID3D12CommandList* cmdsLists[] = { *commandLists_.data() };
 	commandQueue_->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
